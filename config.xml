@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<widget xmlns = "http://www.w3.org/ns/widgets"
+    xmlns:gap = "http://phonegap.com/ns/1.0"
+    id = "com.chunk.test-the-gap"
+    version = "0.1.0">
+
+  <name>Test The Gap</name>
+  
+  <description>
+      Testing the gap app.
+  </description>
+  
+  <author href="http://mysite.com" email="madeupemail@mysite.com">
+      Mr Made Up
+  </author>
+
+  <preference name="fullscreen" value="true" />
+  
+  <preference name="stay-in-webview" value="true" />
+  
+  <access origin="http://endemolgames.net" subdomains="true" />
+  <access origin="http://chunktestarea.com" subdomains="true" />
+  <access origin="http://facebook.com" subdomains="true" browserOnly="true" />
+
+</widget>
