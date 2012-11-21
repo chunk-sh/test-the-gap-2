@@ -16,9 +16,9 @@
 
   <preference name="fullscreen" value="true" />
 
-  <!--<preference name="stay-in-webview" value="true" />-->
+  <preference name="stay-in-webview" value="false" />
   
-  <!--<access origin="http://chunktestarea.com" subdomains="true" />-->
+  <access origin="http://chunktestarea.com" subdomains="true" />
   <!--<access origin="http://facebook.com" subdomains="true" browserOnly="true" />-->    
   <!--<access origin="http://endemolgames.net" subdomains="true" />-->  
 
