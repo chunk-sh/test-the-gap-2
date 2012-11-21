@@ -16,7 +16,7 @@
 
   <preference name="fullscreen" value="true" />
   
-  <preference name="stay-in-webview" value="true" />
+  <!--<preference name="stay-in-webview" value="true" />-->
   
   <access origin="http://endemolgames.net" subdomains="true" />
   <access origin="http://chunktestarea.com" subdomains="true" />
