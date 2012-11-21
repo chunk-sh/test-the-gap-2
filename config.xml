@@ -4,10 +4,10 @@
     id = "com.chunk.test-the-gap"
     version = "0.1.0">
 
-  <name>Test The Gap</name>
+  <name>Test The Gap 2</name>
   
   <description>
-      Testing the gap app.
+      Testing the gap app version 2.
   </description>
   
   <author href="http://mysite.com" email="madeupemail@mysite.com">
