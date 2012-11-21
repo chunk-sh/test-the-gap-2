@@ -16,9 +16,9 @@
 
   <preference name="fullscreen" value="true" />
 
-  <preference name="stay-in-webview" value="false" />
+  <!--<preference name="stay-in-webview" value="false" />-->
 
-  <access origin="*" />
+  <!--<access origin="*" />-->
   <!--<access origin="http://chunktestarea.com" />-->
   <!--<access origin="http://chunktestarea.com" subdomains="true" browserOnly="false" />-->
   <!--<access origin="http://facebook.com" subdomains="true" browserOnly="true" />-->    
