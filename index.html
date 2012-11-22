@@ -8,7 +8,7 @@
 
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-    <script type="text/javascript">
+    <!--<script type="text/javascript">
         var ticker = {
             tickCountLocator: "#ticker-value",
             tickCountValue: 0,
@@ -56,13 +56,295 @@
             ticker.init();
             pageInfo.init();
         });
+    </script>-->
+    <script type="text/javascript">
+        var logger = {
+            isActive: false,
+            activate: function () {
+                logger.stubConsoleFunctionsIfUnavailable();
+                logger.isActive = true;
+                logger.log("logger activated");
+            },
+            log: function (message) {
+                if (logger.isActive) {
+                    var timestamp = new Date();
+                    console.log(timestamp + ": " + message);
+                }
+            },
+            logObj: function (obj) {
+                if (logger.isActive) {
+                    console.log(obj);
+                }
+            },
+            logUrl: function () {
+                logger.log(document.URL);
+            },
+            stubConsoleFunctionsIfUnavailable: function () {
+                if (typeof (console) == "undefined") {
+                    console = { log: $.noop, group: $.noop, groupEnd: $.noop };
+                }
+            }
+        };
+        logger.activate();
+        var ticker = {
+            tickCountLocator: "#ticker-value",
+            tickCountValue: 0,
+            init: function (locator) {
+                if (locator) {
+                    tickCountLocator = locator;
+                }
+                setInterval("ticker.update()", 1000);
+            },
+            update: function () {
+                this.tickCountValue += 1;
+                $(this.tickCountLocator).html(this.tickCountValue);
+            }
+        };
+    </script>          
+    <script type="text/javascript">
+        var fbConfigSettings = {
+            appId: null,
+            requiredPermissions: "",
+            facebookChannelUrl: null,
+            redirectReturnUrl: null,
+            useRedirectForLogin: false,
+            redirectReturningFlag: "recheckFbStatus=true",
+            init: function (config) {
+                this.appId = config.facebookAppId;
+                this.facebookChannelUrl = config.sitePrefix + "/channel.html";
+                this.redirectReturnUrl = config.sitePrefix + "/index.html";
+                this.useRedirectForLogin = config.useRedirectForLogin;
+                this.logConfig();
+            },
+            logConfig: function () {
+                logger.log("Facebook App ID: " + this.appId);
+                logger.log("Facebook Channel URL: " + this.facebookChannelUrl);
+                if (this.useRedirectForLogin) {
+                    logger.log("Facebook login using redirect with return URL: " + this.redirectReturnUrl);
+                } else {
+                    logger.log("Facebook login using popup.");
+                }
+            }
+        };
+        var home = {
+            loadingConfigContentLocator: "#loading-config-content",
+            loadingFacebookContentLocator: "#loading-fb-content",
+            loadedContentLocator: "#loaded-fb-content",
+            loggedInContentLocator: "#logged-in-content",
+            loggedOutContentLocator: "#not-logged-in-content",
+            loginPopupLocator: "#login-popup-info",
+            loginRedirectLocator: "#login-redirect-info",
+            currentUrlInfoLocator: "#current-url-info",
+            homeUrlInfoLocator: "#home-url-info",
+            userIdLocator: "#user-id",
+            init: function () {
+                ticker.init();
+                //$.getJSON("config.js", home.loadConfig);
+                var config = {
+                    sitePrefix: "",
+                    facebookAppId: "492323130798390",
+                    useRedirectForLogin: false
+                };
+                home.loadConfig(config);
+            },
+            loadConfig: function (config) {
+                logger.logObj(config);
+                fbConfigSettings.init(config);
+                home.toggleContent(false, true, false, false, false);
+                home.refreshUrlInfo();
+                facebookApi.loadSdk(fbConfigSettings.appId, fbConfigSettings.facebookChannelUrl, home.onFacebookLoaded);
+            },
+            onFacebookLoaded: function () {
+                home.recheckFacebookLoginIfRequired();
+                $(home.loginPopupLocator).toggle(!fbConfigSettings.useRedirectForLogin);
+                $(home.loginRedirectLocator).toggle(fbConfigSettings.useRedirectForLogin);
+                home.toggleContent(false, false, true, false, false);
+            },
+            onUserHasAuthorised: function (userId) {
+                $(home.userIdLocator).html(userId);
+                home.toggleContent(false, false, false, true, false);
+            },
+            onUserRequestsLogin: function () {
+                if (fbConfigSettings.useRedirectForLogin) {
+                    facebookApi.loginUserUsingRedirect(fbConfigSettings.appId, fbConfigSettings.requiredPermissions, fbConfigSettings.redirectReturnUrl + "?" + fbConfigSettings.redirectReturningFlag);
+                } else {
+                    facebookApi.loginUser(fbConfigSettings.requiredPermissions, home.onUserHasAuthorised, home.onUserDeclinesLogin);
+                }
+            },
+            onUserDeclinesLogin: function () {
+                home.toggleContent(false, false, false, false, true);
+            },
+            recheckFacebookLoginIfRequired: function () {
+                if (window.location.href.indexOf(fbConfigSettings.redirectReturningFlag) != -1) {
+                    facebookApi.checkUserHasAuthorisedPermission(fbConfigSettings.requiredPermissions, home.onUserHasAuthorised, $.noop);
+                }
+            },
+            toggleContent: function (showLoadingConfig, showLoadingFacebook, showLoadedFacebook, showLoggedIn, showLoggedOut) {
+                $(home.loadingConfigContentLocator).toggle(showLoadingConfig);
+                $(home.loadingFacebookContentLocator).toggle(showLoadingFacebook);
+                $(home.loadedContentLocator).toggle(showLoadedFacebook);
+                $(home.loggedInContentLocator).toggle(showLoggedIn);
+                $(home.loggedOutContentLocator).toggle(showLoggedOut);
+            },
+            refreshUrlInfo: function () {
+                $(home.currentUrlInfoLocator).html(document.location.href);
+                $(home.homeUrlInfoLocator).html(fbConfigSettings.redirectReturnUrl);
+            }
+        };
     </script>
+    <script type="text/javascript">
+        var facebookApi = {
+            currentUser: {
+                facebookId: "",
+                accessToken: "",
+                refresh: function (response) {
+                    if (response.status === "connected") {
+                        facebookApi.currentUser.set(response.authResponse);
+                    } else {
+                        facebookApi.currentUser.clear();
+                    }
+                },
+                set: function (authResponse) {
+                    logger.log("Setting current user details for facebook id " + authResponse.userID);
+                    facebookApi.currentUser.accessToken = authResponse.accessToken;
+                    facebookApi.currentUser.facebookId = authResponse.userID;
+                },
+                clear: function () {
+                    logger.log("Clearing current user details");
+                    facebookApi.currentUser.accessToken = "";
+                    facebookApi.currentUser.facebookId = "";
+                }
+            },
+            checkLoginStatus: function (callback) {
+                FB.getLoginStatus(function (response) {
+                    facebookApi.currentUser.refresh(response);
+                    callback(response);
+                });
+            },
+            checkPermissions: function (callback) {
+                FB.api("/me/permissions", function (response) {
+                    callback(response);
+                });
+            },
+            checkPermissionGranted: function (currentUserFacebookId, toCheck, onGranted, onNotGranted) {
+                if (toCheck === "") {
+                    onGranted(currentUserFacebookId); // No additional permissions required.
+                    return;
+                }
+                facebookApi.checkPermissions(function (permissionsResponse) {
+                    var isGranted = false;
+                    if (facebookApi.responseValid(permissionsResponse)) {
+                        var permissionsToCheck = toCheck.split(',');
+                        var permissionsData = permissionsResponse.data[0];
+                        var permissionsGranted = 0;
+                        for (var next = 0; next < permissionsToCheck.length; next++) {
+                            $.each(permissionsData, function (name, value) {
+                                if (name === permissionsToCheck[next] && value === 1) {
+                                    permissionsGranted++;
+                                }
+                            });
+                        }
+                        isGranted = permissionsToCheck.length == permissionsGranted;
+                    }
+                    if (isGranted) {
+                        onGranted(currentUserFacebookId);
+                    } else {
+                        onNotGranted();
+                    }
+                });
+            },
+            checkUserHasAuthorised: function (onHasAuthorised, onHasNotAuthorised) {
+                facebookApi.checkLoginStatus(function (response) {
+                    if (response.status === "connected") {
+                        onHasAuthorised(response.authResponse.userID);
+                    } else {
+                        onHasNotAuthorised();
+                    }
+                });
+            },
+            checkUserHasAuthorisedPermission: function (toCheck, onHasAuthorised, onHasNotAuthorised) {
+                facebookApi.checkUserHasAuthorised(function (facebookId) { facebookApi.checkPermissionGranted(facebookId, toCheck, onHasAuthorised, onHasNotAuthorised); }, onHasNotAuthorised);
+            },
+            loadSdk: function (appId, channelFileUrl, onLoadCompleteCallback) {
+                window.fbAsyncInit = function () {
+                    FB._https = (window.location.protocol == "https:"); // Always match iframe protocol.
+                    FB.init({
+                        appId: appId, // App ID
+                        channelUrl: channelFileUrl,
+                        status: true, // check login status
+                        cookie: true, // enable cookies to allow the server to access the session
+                        xfbml: true, // parse XFBML
+                        oauth: true // enable OAuth 2.0
+                    });
+                    FB.Canvas.setAutoGrow();
+                    if (onLoadCompleteCallback) {
+                        onLoadCompleteCallback();
+                    }
+                };
 
+                // Load the SDK Asynchronously
+                (function (d) {
+                    var js, id = "facebook-jssdk", ref = d.getElementsByTagName("script")[0];
+                    if (d.getElementById(id)) {
+                        return;
+                    }
+                    js = d.createElement("script");
+                    js.id = id;
+                    js.async = true;
+                    js.src = "//connect.facebook.net/en_US/all.js";
+                    ref.parentNode.insertBefore(js, ref);
+                }(document));
+            },
+            loginUser: function (permissionScope, logInCallback, cancelCallback) {
+                FB.login(function (response) {
+                    if (response.authResponse) {
+                        facebookApi.currentUser.refresh(response);
+                        logInCallback(response.authResponse.userID);
+                    } else {
+                        cancelCallback();
+                    }
+                }, { scope: permissionScope });
+            },
+            loginUserUsingRedirect: function (appId, permissionScope, redirectUri) {
+                var oauthUrl = 'https://www.facebook.com/dialog/oauth/';
+                oauthUrl += "?client_id=" + appId;
+                oauthUrl += '&redirect_uri=' + encodeURIComponent(redirectUri);
+                oauthUrl += "&scope=" + permissionScope;
+                window.top.location = oauthUrl;
+            },
+            reportLoadComplete: function () {
+                FB.Canvas.setDoneLoading();
+            },
+            responseValid: function (response) {
+                var isValid = true;
+                if (!response) {
+                    isValid = false;
+                    logger.log("facebookApi Reposonse undefined.");
+                } else if (response.error) {
+                    isValid = false;
+                    logger.log("facebookApi Reposonse Error: " + response.error.message);
+                }
+                return isValid;
+            },
+            toDate: function (unixTimestamp) {
+                var date = new Date(unixTimestamp * 1000);
+                return date.toString();
+            }
+        };
+    </script>
+    <script type="text/javascript">
+        $(function () {
+            home.init();
+        });
+    </script>
+    <style>
+      .hidden { display: none; }
+    </style>
 </head>
 <body>
     <!--<h3>Landing Page</h3>
     <p>Redirecting...</p>-->
-    <h3>WebView Home (<span id="ticker-value">0s</span>)</h3>
+    <!--<h3>WebView Home (<span id="ticker-value">0s</span>)</h3>
     <h4>v1</h4>
     <ul>
         <li><a href="http://chunkuploads.co.uk/testing/webonly-home.html">Open External Site</a></li>
@@ -84,6 +366,32 @@
     </ul>
     <p>TODO Examples: iframe, ajax </p>
     <hr />
-    <p>Current URL: <span id="current-url-info"></span></p>     
+    <p>Current URL: <span id="current-url-info"></span></p>   -->  
+    <div id="fb-root"></div>
+    <h3>Facebook Test</h3>
+    <div id="loading-config-content">
+        <p>Loading config...</p>
+    </div>   
+    <div id="loading-fb-content" class="hidden">
+        <p>Loading facebook...</p>
+    </div>   
+    <div id="loaded-fb-content" class="hidden">
+        <p id="login-popup-info">Login will use a popup</p>
+        <p id="login-redirect-info" class="hidden">Login will use a redirect</p>
+        <button onclick="home.onUserRequestsLogin()">Facebook Login</button>
+    </div>
+    <div id="logged-in-content" class="hidden">                   
+      <p>Logged in with FB ID <span id="user-id"></span></p>
+    </div>
+    <div id="not-logged-in-content" class="hidden">
+      <p>Not logged in</p>
+      <button onclick="home.onFacebookLoaded()">Try Again</button>
+    </div>  
+    <span id="ticker-value"></span>
+    <hr />
+    <button onclick="document.location = fbConfigSettings.redirectReturnUrl">Reload Page</button>
+    <p>Current URL: <span id="current-url-info"></span></p>
+    <p>Home URL: <span id="home-url-info"></span></p>
+  </body>  
 </body>
 </html>
