@@ -18,6 +18,7 @@
 
   <!--<preference name="stay-in-webview" value="false" />-->
 
+  <access />
   <!--<access origin="*" />-->
   <!--<access origin="http://chunktestarea.com" />-->
   <!--<access origin="http://chunktestarea.com" subdomains="true" browserOnly="false" />-->
