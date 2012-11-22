@@ -32,6 +32,15 @@
                 $(this.currentUrlLocator).html(document.location.href);
             }
         };
+        var facebookUrl = "http://facebook.com"
+        var pageOpener = {
+            openUrl: function (url) {
+                document.location.href = url;
+            },
+            openUrlInTab: function (url) {
+                window.open(url, "_blank");
+            }
+        };
     </script>
     <style>
         a {
@@ -66,6 +75,10 @@
         <li><a href="http://facebook.com" rel="external" >Open Facebook (rel external)</a></li>
         <li><a href="http://facebook.com" data-ajax="false" >Open Facebook (data ajax false)</a></li>
         <li><a href="http://facebook.com" target="_blank" rel="external" data-ajax="false" >Open Facebook (all)</a></li>
+        <li><a href="#" onclick="document.location.href = facebookUrl">Open Facebook (using js)</a></li>
+        <li><a href="#" onclick="document.location.href = facebookUrl" target="_blank">Open Facebook (using js target blank)</a></li>
+        <li><button onclick="pageOpener.openUrl(facebookUrl)">Open Facebook (using js)</button></li>
+        <li><button onclick="pageOpener.openUrlInTab(facebookUrl)">Open Facebook (using js target blank)</button></li>
         <li><a href="http://google.com">Open Google</a></li>
         <li><a href="http://google.com" target="_blank">Open Google (request new tab)</a></li>
     </ul>
