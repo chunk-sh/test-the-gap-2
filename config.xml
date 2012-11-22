@@ -17,7 +17,7 @@
   <preference name="fullscreen" value="true" />
 
   <access origin="" />
-  <access origin="*" onlyInBrowser="true" />
+  <!--<access origin="*" onlyInBrowser="true" />-->
   <!--<access origin="*" browserOnly="true" />-->
 
 </widget>
